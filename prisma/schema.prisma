@@ -1,0 +1,347 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+// [pending]
+// Application
+enum LEVEL_APP {
+  STANDAR
+  SINGLE
+  BUSINESS
+  ENTERPRISE
+  FULL
+}
+
+model PackageApplication {
+  id          String    @id @default(cuid())
+  company_id  String    @unique
+  owner_name  String    @db.VarChar(100)
+  owner_email String    @db.VarChar(100)
+  owner_phone String    @db.VarChar(100)
+  level_app   LEVEL_APP @default(FULL)
+  status      STATUS    @default(ACTIVE)
+  created_at  DateTime  @default(now())
+  expired_at  DateTime?
+  company     Company   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@map("package_application")
+}
+
+// Company
+model Company {
+  id                  String              @id @default(cuid()) @db.VarChar(100)
+  name                String              @db.VarChar(100)
+  legal_name          String?             @db.VarChar(100)
+  description         String?
+  logo                String?
+  established_at      DateTime
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+
+  package_application PackageApplication?
+  social_media        SocialMedia[]
+  website_settings    WebsiteSettings?
+  @@map("companies")
+}
+
+// [pending]
+model SocialMedia {
+  id         Int      @id @default(autoincrement())
+  company_id String
+  platform   SOSMED   @default(facebook)
+  url        String   @db.VarChar(255)
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  company    Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@map("social_media")
+}
+
+// Utils 
+// [pending]
+model WebsiteSettings {
+  id                    Int      @id @default(autoincrement())
+  company_id            String   @unique
+  website_title         String   @db.VarChar(255)
+  website_url           String   @db.VarChar(255)
+  maintenance_mode      Boolean  @default(false)
+  google_analytics_id   String?  @db.VarChar(20)
+  google_tag_manager_id String?  @db.VarChar(20)
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+  company               Company  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@map("website_settings")
+}
+
+model SuspiciousActivity {
+  ip         String   @db.VarChar(100)
+  user_agent String   @db.VarChar(255)
+  reason     String
+  created_at DateTime @default(now())
+  severity   String?  @db.VarChar(20)
+  id         String   @id @db.VarChar(255)
+
+  @@index([ip])
+  @@index([created_at])
+  @@map("suspicious_activities")
+}
+
+enum LogActivities {
+  CREATE
+  UPDATE
+  DELETE
+  CLEAN
+}
+model LoggingActivity {
+  id Int @id @default(autoincrement())
+  account_id String?
+  activity LogActivities
+  resource String? @db.VarChar(50)
+  description String @db.VarChar(255)
+  
+  account Account? @relation(fields: [account_id], references: [id], onDelete: NoAction)
+  created_at  DateTime     @default (now())
+  @@map("logging_activities")
+}
+
+// Auth
+model Account {
+  id          String       @id @default(uuid())
+  email       String       @unique @db.VarChar(100)
+  password    String       @db.VarChar(100)
+  status      STATUS       @default(PENDING)
+  role        ROLE         @default(STAFF)
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
+  deleted_at  DateTime?
+
+  email_verify    EmailVerify?
+  user            User?
+  addresses       Address[]
+  log_activities  LoggingActivity[]
+
+  @@index([role])
+  @@index([email, status])
+  @@map("accounts")
+}
+
+model User {
+  id         String    @id @default(uuid())
+  first_name  String    @db.VarChar(100)
+  last_name  String?   @db.VarChar(100)
+  photo      String?
+  phone      String?
+  whatsapp   String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  account_id String    @unique
+  account    Account   @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  @@unique([phone, whatsapp])
+  @@index([first_name])
+  @@index([first_name, last_name])
+  @@index([deleted_at])
+  @@index([first_name, deleted_at])
+  @@map("users")
+}
+
+enum TYPE_EMAIL {
+  REGISTER
+  RESET_PASSWORD
+}
+model EmailVerify {
+  id          Int        @id @default(autoincrement())
+  email       String     @unique @db.VarChar(100)
+  type        TYPE_EMAIL @default(REGISTER)
+  code        String     @db.VarChar(100)
+  created_at  DateTime   @default(now())
+  accepted_at DateTime?
+  expired_at  DateTime?
+  account     Account    @relation(fields: [email], references: [email], onDelete: Cascade)
+
+  @@index([email, accepted_at])
+  @@index([email, expired_at])
+  @@index([email, expired_at, accepted_at])
+  @@map("email_verifies")
+}
+
+model Address {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(100)
+  primary      Boolean?  @default(false)
+  street       String
+  district     String   @db.VarChar(100)
+  sub_district String   @db.VarChar(100)
+  city         String   @db.VarChar(100)
+  province     String   @db.VarChar(100)
+  country      String   @db.VarChar(100)
+  postal_code  String   @db.VarChar(6)
+  notes        String?
+
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  account_id   String   @db.VarChar(100)
+
+  account         Account     @relation(fields: [account_id], references: [id], onDelete: Cascade)
+
+  @@index([account_id, name])
+  @@index([account_id, id])
+  @@index([account_id, primary])
+  @@map("addresses")
+}
+
+enum STATUS {
+  PENDING
+  ACTIVE
+  FAVOURITE
+  BLOCK
+  DELETE
+}
+
+enum ROLE {
+  STAFF
+  SUPER_ADMIN
+  OWNER
+  DEVELOPER
+}
+
+enum SOSMED {
+  facebook
+  twitter
+  instagram
+  linkedin
+  youtube
+  tiktok
+  whatsapp
+}
+
+// Kategori tetap sama
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  slug        String   @unique
+  description String?
+  status      STATUS   @default(ACTIVE)
+
+  books BookCategory[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Author {
+  id         Int          @id @default(autoincrement())
+  first_name String       @db.VarChar(150)
+  last_name  String?      @db.VarChar(200)
+  bio        String?      @db.Text
+
+  books      BookAuthor[]
+  created_at DateTime     @default(now())
+  updated_at DateTime     @updatedAt
+  deleted_at DateTime?
+
+  @@index([first_name, last_name])
+  @@index([first_name])
+  @@index([last_name])
+  @@index([deleted_at])
+  @@map("authors")
+}
+
+model Publisher {
+  id         Int       @id @default(autoincrement())
+  name       String
+  slug       String    @unique
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  books      Book[]
+  @@index([deleted_at])
+  @@map("publishers")
+}
+
+// Pivot Table: Jika Author dihapus, record di sini hilang (Cascade), tapi Book tetap ada
+model BookAuthor {
+  book_id   String
+  author_id Int
+
+  book   Book   @relation(fields: [book_id], references: [id], onDelete: Cascade)
+  author Author @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@id([book_id, author_id])
+  @@map("book_author")
+}
+
+model Book {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  description   String?
+  cover_url     String?
+
+  isbn          String?
+  publish_year  Int?
+  language      String?
+  pages         Int?
+
+  // onDelete: SetNull -> Jika Publisher dihapus, publisher_id jadi null, Book tetap ada
+  publisher_id  Int?
+  publisher     Publisher? @relation(fields: [publisher_id], references: [id], onDelete: SetNull)
+
+  status        STATUS @default(ACTIVE)
+
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  deleted_at    DateTime?
+
+  authors       BookAuthor[]
+  categories    BookCategory[]
+  files         BookFile[]    // Relasi ke file
+
+  @@index([title])
+  @@index([publish_year])
+  @@index([deleted_at])
+  @@map("books")
+}
+
+model BookCategory {
+  book_id     String
+  category_id Int
+
+  book     Book     @relation(fields: [book_id], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [category_id], references: [id], onDelete: Cascade)
+
+  @@id([book_id, category_id])
+  @@map("book_cartegory")
+}
+
+enum FILE_TYPE {
+  PDF
+  EPUB
+}
+
+model BookFile {
+  id        String   @id @default(cuid())
+  book_id   String
+  file_url  String   
+  file_type FILE_TYPE
+  size_kb   Int?
+  pages     Int?
+
+  // onDelete: Cascade -> Jika Book dihapus, BookFile otomatis terhapus
+  book Book @relation(fields: [book_id], references: [id], onDelete: Cascade)
+
+  @@map("book_files")
+}
