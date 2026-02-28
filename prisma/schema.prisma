@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 // [pending]
@@ -35,20 +35,20 @@ model PackageApplication {
 
 // Company
 model Company {
-  id                  String              @id @default(cuid()) @db.VarChar(100)
-  name                String              @db.VarChar(100)
-  legal_name          String?             @db.VarChar(100)
-  description         String?
-  logo                String?
-  established_at      DateTime
+  id             String   @id @default(cuid()) @db.VarChar(100)
+  name           String   @db.VarChar(100)
+  legal_name     String?  @db.VarChar(100)
+  description    String?
+  logo           String?
+  established_at DateTime
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-
   package_application PackageApplication?
   social_media        SocialMedia[]
   website_settings    WebsiteSettings?
+
   @@map("companies")
 }
 
@@ -102,33 +102,35 @@ enum LogActivities {
   DELETE
   CLEAN
 }
+
 model LoggingActivity {
-  id Int @id @default(autoincrement())
-  account_id String?
-  activity LogActivities
-  resource String? @db.VarChar(50)
-  description String @db.VarChar(255)
-  
-  account Account? @relation(fields: [account_id], references: [id], onDelete: NoAction)
-  created_at  DateTime     @default (now())
+  id          Int           @id @default(autoincrement())
+  account_id  String?
+  activity    LogActivities
+  resource    String?       @db.VarChar(50)
+  description String        @db.VarChar(255)
+
+  account    Account? @relation(fields: [account_id], references: [id], onDelete: NoAction)
+  created_at DateTime @default(now())
+
   @@map("logging_activities")
 }
 
 // Auth
 model Account {
-  id          String       @id @default(uuid())
-  email       String       @unique @db.VarChar(100)
-  password    String       @db.VarChar(100)
-  status      STATUS       @default(PENDING)
-  role        ROLE         @default(STAFF)
-  created_at  DateTime     @default(now())
-  updated_at  DateTime     @updatedAt
-  deleted_at  DateTime?
+  id         String    @id @default(uuid())
+  email      String    @unique @db.VarChar(100)
+  password   String    @db.VarChar(100)
+  status     STATUS    @default(PENDING)
+  role       ROLE      @default(STAFF)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
 
-  email_verify    EmailVerify?
-  user            User?
-  addresses       Address[]
-  log_activities  LoggingActivity[]
+  email_verify   EmailVerify?
+  user           User?
+  addresses      Address[]
+  log_activities LoggingActivity[]
 
   @@index([role])
   @@index([email, status])
@@ -137,7 +139,7 @@ model Account {
 
 model User {
   id         String    @id @default(uuid())
-  first_name  String    @db.VarChar(100)
+  first_name String    @db.VarChar(100)
   last_name  String?   @db.VarChar(100)
   photo      String?
   phone      String?
@@ -146,8 +148,9 @@ model User {
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
 
-  account_id String    @unique
-  account    Account   @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  account_id String  @unique
+  account    Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+
   @@unique([phone, whatsapp])
   @@index([first_name])
   @@index([first_name, last_name])
@@ -160,6 +163,7 @@ enum TYPE_EMAIL {
   REGISTER
   RESET_PASSWORD
 }
+
 model EmailVerify {
   id          Int        @id @default(autoincrement())
   email       String     @unique @db.VarChar(100)
@@ -179,7 +183,7 @@ model EmailVerify {
 model Address {
   id           Int      @id @default(autoincrement())
   name         String   @db.VarChar(100)
-  primary      Boolean?  @default(false)
+  primary      Boolean? @default(false)
   street       String
   district     String   @db.VarChar(100)
   sub_district String   @db.VarChar(100)
@@ -189,11 +193,11 @@ model Address {
   postal_code  String   @db.VarChar(6)
   notes        String?
 
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-  account_id   String   @db.VarChar(100)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  account_id String   @db.VarChar(100)
 
-  account         Account     @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
 
   @@index([account_id, name])
   @@index([account_id, id])
@@ -228,11 +232,11 @@ enum SOSMED {
 
 // Kategori tetap sama
 model Category {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(100)
-  slug        String   @unique
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(100)
+  slug        String  @unique
   description String?
-  status      STATUS   @default(ACTIVE)
+  status      STATUS  @default(ACTIVE)
 
   books BookCategory[]
 
@@ -241,10 +245,10 @@ model Category {
 }
 
 model Author {
-  id         Int          @id @default(autoincrement())
-  first_name String       @db.VarChar(150)
-  last_name  String?      @db.VarChar(200)
-  bio        String?      @db.Text
+  id         Int     @id @default(autoincrement())
+  first_name String  @db.VarChar(150)
+  last_name  String? @db.VarChar(200)
+  bio        String? @db.Text
 
   books      BookAuthor[]
   created_at DateTime     @default(now())
@@ -259,15 +263,16 @@ model Author {
 }
 
 model Publisher {
-  id         Int       @id @default(autoincrement())
-  name       String
-  slug       String    @unique
+  id   Int    @id @default(autoincrement())
+  name String
+  slug String @unique
 
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
 
-  books      Book[]
+  books Book[]
+
   @@index([deleted_at])
   @@map("publishers")
 }
@@ -285,30 +290,30 @@ model BookAuthor {
 }
 
 model Book {
-  id            String   @id @default(cuid())
-  title         String
-  slug          String   @unique
-  description   String?
-  cover_url     String?
+  id          String  @id @default(cuid())
+  title       String
+  slug        String  @unique
+  description String?
+  cover_url   String?
 
-  isbn          String?
-  publish_year  Int?
-  language      String?
-  pages         Int?
+  isbn         String?
+  publish_year Int?
+  language     String?
+  pages        Int?
 
   // onDelete: SetNull -> Jika Publisher dihapus, publisher_id jadi null, Book tetap ada
-  publisher_id  Int?
-  publisher     Publisher? @relation(fields: [publisher_id], references: [id], onDelete: SetNull)
+  publisher_id Int?
+  publisher    Publisher? @relation(fields: [publisher_id], references: [id], onDelete: SetNull)
 
-  status        STATUS @default(ACTIVE)
+  status STATUS @default(ACTIVE)
 
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-  deleted_at    DateTime?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
 
-  authors       BookAuthor[]
-  categories    BookCategory[]
-  files         BookFile[]    // Relasi ke file
+  authors    BookAuthor[]
+  categories BookCategory[]
+  files      BookFile[] // Relasi ke file
 
   @@index([title])
   @@index([publish_year])
@@ -333,9 +338,9 @@ enum FILE_TYPE {
 }
 
 model BookFile {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   book_id   String
-  file_url  String   
+  file_url  String
   file_type FILE_TYPE
   size_kb   Int?
   pages     Int?
@@ -344,4 +349,42 @@ model BookFile {
   book Book @relation(fields: [book_id], references: [id], onDelete: Cascade)
 
   @@map("book_files")
+}
+
+model Post {
+  id      String @id @default(cuid())
+  content String @db.Text
+  status  STATUS @default(ACTIVE)
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  comments Comment[]
+
+  @@index([deleted_at])
+  @@map("posts")
+}
+
+model Comment {
+  id        String  @id @default(cuid())
+  post_id   String
+  parent_id String?
+
+  name    String @db.VarChar(100)
+  content String @db.Text
+  status  STATUS @default(ACTIVE)
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  post    Post      @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  parent  Comment?  @relation("ThreadedComments", fields: [parent_id], references: [id], onDelete: Cascade)
+  replies Comment[] @relation("ThreadedComments")
+
+  @@index([post_id])
+  @@index([parent_id])
+  @@index([deleted_at])
+  @@map("comments")
 }
