@@ -1,5 +1,5 @@
 import z from "zod";
-import { RequestBookSchema } from "../book/book.schema.js";
+import { ResponseBookSchema } from "../book/book.schema.js";
 
 export const RequestAuthorSchema = z.object({
     first_name: z
@@ -8,7 +8,8 @@ export const RequestAuthorSchema = z.object({
     last_name: z
         .string("Nama belakang tidak boleh kosong")
         .max(200, "Nama belakang maksimal 200 karakter")
-        .nullable(),
+        .nullable()
+        .optional(),
 
     bio: z.string().max(500, "Bio maksimal memiliki 500 karakter").nullable().optional(),
 });
@@ -18,20 +19,7 @@ export const ResponseAuthorSchema = RequestAuthorSchema.extend({
     created_at: z.date(),
     updated_at: z.date(),
     deleted_at: z.date().nullable().optional(),
-    books: z.array(
-        RequestBookSchema.pick({
-            categories: true,
-            cover_url: true,
-            description: true,
-            isbn: true,
-            language: true,
-            pages: true,
-            publish_year: true,
-            publisher: true,
-            title: true,
-            status: true,
-        }),
-    ),
+    books: z.array(ResponseBookSchema.omit({ authors: true, book_files: true })).optional(),
 });
 
 export type RequestAuthorDTO = z.input<typeof RequestAuthorSchema>;

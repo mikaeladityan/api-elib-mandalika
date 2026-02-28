@@ -254,24 +254,25 @@ export class AuthorService {
             first_name: author.first_name,
             last_name: author.last_name,
             bio: author.bio,
-            books: author.books.map((b) => ({
-                title: b.book.title,
-                slug: b.book.slug,
-                status: b.book.status,
-                cover_url: b.book.cover_url ?? undefined,
-                description: b.book.description ?? undefined,
-                isbn: b.book.isbn ?? undefined,
-                language: b.book.language ?? undefined,
-                publish_year: b.book.publish_year ?? undefined,
-                pages: b.book.pages,
-                publisher: {
-                    name: b.book.publisher?.name ?? "",
-                },
-                categories: b.book.categories.map((c) => ({
-                    name: c.category.name,
-                    slug: c.category.slug,
-                })),
-            })),
+            ...(author.books &&
+                author.books.map((b) => ({
+                    title: b.book.title,
+                    slug: b.book.slug,
+                    status: b.book.status,
+                    cover_url: b.book.cover_url,
+                    description: b.book.description ?? undefined,
+                    isbn: b.book.isbn ?? undefined,
+                    language: b.book.language ?? undefined,
+                    publish_year: b.book.publish_year ?? undefined,
+                    pages: b.book.pages,
+                    publisher: {
+                        name: b.book.publisher?.name ?? "",
+                    },
+                    categories: b.book.categories.map((c) => ({
+                        name: c.category.name,
+                        slug: c.category.slug,
+                    })),
+                }))),
             created_at: author.created_at,
             updated_at: author.updated_at,
             deleted_at: author.deleted_at,

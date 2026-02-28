@@ -50,8 +50,6 @@ export class UserController {
             allowedExtensions: [".webp", ".jpeg", ".jpg", ".png"],
         });
 
-        console.log(newPhotoUrl);
-
         await UserService.photo(session.sub, newPhotoUrl);
         const sessionId = getCookie(c, env.SESSION_COOKIE_NAME) || "";
         await SessionManager.updateSessionData(sessionId, {

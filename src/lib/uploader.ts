@@ -15,10 +15,6 @@ interface UploadOptions {
     convertToWebp?: boolean; // Opsi tambahan untuk kontrol konversi
 }
 
-/**
- * Handler untuk memproses upload file dari Hono Context
- * Mendukung auto-convert image ke WebP dan validasi ketat.
- */
 export async function handleFileUpload(c: Context, options: UploadOptions = {}): Promise<string> {
     const {
         fieldName = "file",

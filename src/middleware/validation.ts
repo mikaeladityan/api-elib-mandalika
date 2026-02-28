@@ -29,9 +29,30 @@ export const validateBody =
     <T extends z.ZodTypeAny>(schema: T) =>
     async (c: Context, next: Next) => {
         try {
-            const body = await c.req.json().catch(() => ({}));
-            const parsed = schema.parse(body);
-            c.set("body", parsed); // Simpan data yang divalidasi
+            const contentType = c.req.header("content-type") || "";
+
+            let parsedBody: any;
+
+            // ✅ jika multipart/form-data
+            if (contentType.includes("multipart/form-data")) {
+                const form = await c.req.parseBody();
+
+                if (!form.data) {
+                    throw new ApiError(400, "Field 'data' tidak ditemukan");
+                }
+                console.log(form);
+                parsedBody = JSON.parse(form.data as string);
+            }
+            // ✅ jika application/json
+            else {
+                parsedBody = await c.req.json();
+            }
+
+            console.log(parsedBody);
+            const validated = schema.parse(parsedBody);
+
+            c.set("body", validated);
+
             await next();
         } catch (error) {
             if (error instanceof z.ZodError) {
@@ -39,8 +60,9 @@ export const validateBody =
                     message: issue.message,
                     path: issue.path.join("."),
                 }));
-                throw new ApiError(400, "Validation Error", errors); // Lempar ApiError
+                throw new ApiError(400, "Validation Error", errors);
             }
-            throw new ApiError(500, "Invalid JSON format"); // Tangani error parsing JSON
+
+            throw error;
         }
     };

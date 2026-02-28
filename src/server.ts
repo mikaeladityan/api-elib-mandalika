@@ -31,7 +31,7 @@ const server = serve(
     },
     () => {
         logger.info(`Server running at http://localhost:${port}`);
-    }
+    },
 );
 // Initialize services
 const initialize = async () => {
