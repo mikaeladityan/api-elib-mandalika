@@ -309,9 +309,9 @@ export class BookService {
         }
     }
 
-    static async detail(id: string): Promise<ResponseBookDTO> {
-        const book = await prisma.book.findUnique({
-            where: { id },
+    static async detail(slug: string): Promise<ResponseBookDTO> {
+        const book = await prisma.book.findFirst({
+            where: { OR: [{ slug }, { id: slug }] },
             include: {
                 publisher: true,
                 authors: {
@@ -389,7 +389,7 @@ export class BookService {
         pages,
         status,
     }: QueryBookDTO): Promise<{
-        data: Array<Omit<ResponseBookDTO, "authors" | "book_files">>;
+        data: Array<Omit<ResponseBookDTO, "book_files">>;
         len: number;
     }> {
         const { skip, take: limit } = GetPagination(page, take);
@@ -444,7 +444,14 @@ export class BookService {
         if (publisher) {
             andWhere.push({
                 publisher: {
-                    name: { contains: publisher, mode: "insensitive" },
+                    OR: [
+                        {
+                            name: { contains: publisher, mode: "insensitive" },
+                        },
+                        {
+                            slug: { contains: publisher, mode: "insensitive" },
+                        },
+                    ],
                 },
             });
         }
@@ -474,6 +481,11 @@ export class BookService {
                 where,
                 include: {
                     publisher: true,
+                    authors: {
+                        include: {
+                            author: true,
+                        },
+                    },
                     categories: {
                         include: { category: true },
                     },
@@ -499,6 +511,13 @@ export class BookService {
                 publish_year: b.publish_year ?? undefined,
                 pages: b.pages,
                 status: b.status,
+
+                authors: b.authors.map((a) => ({
+                    id: a.author_id,
+                    first_name: a.author.first_name,
+                    last_name: a.author.last_name,
+                    bio: a.author.bio,
+                })),
 
                 publisher: {
                     name: b.publisher?.name ?? "",

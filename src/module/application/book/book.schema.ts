@@ -44,7 +44,14 @@ export const ResponseBookSchema = RequestBookSchema.extend({
     deleted_at: z.date().optional(),
     cover_url: z.string().url().optional().nullable(),
     authors: z
-        .array(z.object({ id: true, first_name: true, last_name: true, bio: true }))
+        .array(
+            z.object({
+                id: z.number(),
+                first_name: z.string(),
+                last_name: z.string().nullable(),
+                bio: z.string().nullable(),
+            }),
+        )
         .optional(),
     categories: z.array(
         RequestCategorySchema.extend({
