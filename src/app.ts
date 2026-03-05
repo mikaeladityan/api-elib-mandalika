@@ -170,7 +170,7 @@ app.get(
             sameSite: env.isProduction ? "None" : "Lax", // atau "Strict" jika perlu,
             maxAge: 15 * 60, // sama dengan durasi session
             path: "/",
-            domain: env.isProduction ? ".ascloth.com" : undefined,
+            domain: env.isProduction ? `.mandalikaperfume.my.id` : undefined,
         });
 
         return ApiResponse.sendSuccess(c, { process: "success", token: csrfToken });
