@@ -6,6 +6,7 @@ import { AuthorRoutes } from "./author/author.routes.js";
 import { BookRoutes } from "./book/book.routes.js";
 import { PostRoutes } from "./post/post.routes.js";
 import { CommentRoutes } from "./comment/comment.routes.js";
+import { DashboardRoutes } from "./dashboard/dashboard.routes.js";
 
 export const ApplicationRoutes = new Hono().use(authMiddleware);
 ApplicationRoutes.route("/accounts", AccountRoutes);
@@ -14,3 +15,4 @@ ApplicationRoutes.route("/authors", AuthorRoutes);
 ApplicationRoutes.route("/books", BookRoutes);
 ApplicationRoutes.route("/posts", PostRoutes);
 ApplicationRoutes.route("/comments", CommentRoutes);
+ApplicationRoutes.route("/dashboard", DashboardRoutes);
